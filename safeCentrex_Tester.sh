@@ -8,7 +8,7 @@
 ## https://www.linuxjournal.com/content/return-values-bash-functions
 
 
-. /home/voipgroup/condiciones_safeCentrex.sh
+. /home/voipgroup/git_safeCentrex/safeCentrex_Tester/condiciones_safeCentrex.sh
 When_AsteriskCae5VecesMuySeguidas_Then_AsteriskSigueEstandoLevantando(){
 	##	Precondiciones antes de iniciar la prueba
 	asterisk_status=$(check_AsteriskUp)
