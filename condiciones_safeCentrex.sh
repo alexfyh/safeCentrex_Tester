@@ -4,7 +4,7 @@
 
 check_AsteriskUp(){
 	pidof_asterisk=$(pidof asterisk)
-	if [[ -z pidof_asterisk ]]; then
+	if [[ -z $pidof_asterisk ]]; then
 		##echo "No hay una proceso asterisk ejecutàndose"
 		echo 0
 	fi
@@ -13,6 +13,8 @@ check_AsteriskUp(){
 
 check_SafeCentrexUp(){
 	##ps -aux | grep 'safe_centrex' | grep 'root'
+	## Verificar con un grep /bi/sh
+	## Estar seguro que es el proceos ese
 	wc_ps_aux=$(ps -aux | grep 'safe_centrex' | wc -l)
 	if [[ $wc_ps_aux -ne 2 ]]; then
 		##echo "ERROR = Safe centrex no se encuentra corriendo"
@@ -32,8 +34,8 @@ check_AsteriskListeningOnPort5060Udp(){
 	##	Verifica si al menos hay uno
 	##	TODO = VER SI ES NECESARIO QUE COMPRUEBE QUE HAY SÓLO UN ASTERISK ESCUCHANDO EN ESE PUERTO
 
-	cantidad_ast_en_5060=$(netstat -putan | grep 'udp' | grep 'asterisk' | awk '{print $4}' | awk -F ":" '{print $2}' | grep '5060' | wc -l)
-	if [[ cantidad_ast_en_5060 ]]; then
+	cantidad_ast_en_5060=$(sudo netstat -putan | grep 'udp' | grep 'asterisk' | awk '{print $4}' | awk -F ":" '{print $2}' | grep '5060' | wc -l)
+	if [[ cantidad_ast_en_5060 -gt 0 ]]; then
 		echo 1
 	else
 		echo 0	
