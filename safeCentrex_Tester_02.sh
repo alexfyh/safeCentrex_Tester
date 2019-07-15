@@ -53,10 +53,10 @@ setUp(){
 }
 
 tearDown(){
-	echo "--------------------------------------------------------------------------------------------------------------------------"
-	echo "Se adelantaron " $segundos_adelantados "minutos"
+	echo "Se adelantaron " $segundos_adelantados "segundos"
 	sudo date -s "$segundos_adelantados seconds ago">>/dev/null
 	segundos_adelantados=0
+	echo "--------------------------------------------------------------------------------------------------------------------------"
 }
 test_When_AsteriskCae5VecesCada1Minuto_Then_AsteriskSigueEstandoLevantando(){
 	##	Precondiciones antes de iniciar la prueba
@@ -81,22 +81,25 @@ test_When_AsteriskCae5VecesCada1Minuto_Then_AsteriskSigueEstandoLevantando(){
 
 test_When_AsteriskCae13VecesCada2Minutos_Then_AsteriskNoSeEncuentraCorriendo(){
 	numero_backups_previos=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
-	
 	cantidad_caidas=14
 	for (( i = 0; i < $cantidad_caidas; i++ )); do
-		killall -9 asterisk
+		echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+		actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
+		echo "Numero back ups actuales" $actuales
+		killall -9 asterisk>>/dev/null
 		sleep 5
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 		echo $asterisk_listening
 		if [[ $i -lt 10 ]]; then
-		
-			echo $i
+			echo "Iteracion menor de 10 = " $i 
+			
 			#assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
 		else
-			echo $i
+			echo "Iteracion mayor que 10 = " $i
 			#assertEquals "Asterisk después de 10 caídas no debería estar escuchando " 0 $asterisk_listening
 		fi
 		adelantarSegundos 30
+		echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	done
 	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
 	sleep 5
