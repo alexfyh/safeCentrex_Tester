@@ -58,13 +58,9 @@ tearDown(){
 	segundos_adelantados=0
 	echo "--------------------------------------------------------------------------------------------------------------------------"
 }
-test_When_AsteriskCae5VecesCada1Minuto_Then_AsteriskSigueEstandoLevantando(){
-	##	Precondiciones antes de iniciar la prueba
-	
+test_When_AsteriskCae5VecesSeguidas_Then_AsteriskSigueEstandoLevantando(){	
 	numero_backups_previos=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
 	
-	## Si la inicialización está bien, no hace falta adelantar 10 minutos
-	##sudo date -s "10 minutes"
 	cantidad_caidas=5
 	for (( i = 0; i < $cantidad_caidas; i++ )); do
 		killall -9 asterisk
@@ -79,26 +75,28 @@ test_When_AsteriskCae5VecesCada1Minuto_Then_AsteriskSigueEstandoLevantando(){
 	assertEquals "Cantida de backups no consistente " $numero_esperado $numero_backups_actuales
 }
 
-test_When_AsteriskCae13VecesCada2Minutos_Then_AsteriskNoSeEncuentraCorriendo(){
+test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo(){
 	numero_backups_previos=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
 	cantidad_caidas=14
 	for (( i = 0; i < $cantidad_caidas; i++ )); do
 		echo ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
 		actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
-		echo "Numero back ups actuales" $actuales
+		echo "Numero back ups actuales antes de la caida" $actuales
 		killall -9 asterisk>>/dev/null
 		sleep 5
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
-		echo $asterisk_listening
+		echo "Estado del asterisk antes de la caida = "  $asterisk_listening
 		if [[ $i -lt 10 ]]; then
-			echo "Iteracion menor de 10 = " $i 
+			echo "Iteracion = " $i 
 			
 			#assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
 		else
-			echo "Iteracion mayor que 10 = " $i
+			echo "Iteracion = " $i
 			#assertEquals "Asterisk después de 10 caídas no debería estar escuchando " 0 $asterisk_listening
 		fi
 		adelantarSegundos 30
+		actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
+		echo "Numero back ups actuales después de la caida" $actuales
 		echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	done
 	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
@@ -109,13 +107,72 @@ test_When_AsteriskCae13VecesCada2Minutos_Then_AsteriskNoSeEncuentraCorriendo(){
 	assertEquals "Cantida de backups no consistente " $numero_esperado $numero_backups_actuales
 }
 
-
-test_WhenAsteriskCae5VecesCada1MinutoLuego7VecesCada1Minuto_Then_AsteriskSigueEstandoLevantando(){
+test_WhenAsteriskCae5VecesSeguidasLuego8VecesSeguidas_Then_AsteriskSigueEstandoLevantando(){
 	##	Luego hacer referencia a después de 10 minutos.
 	##	Test válido para comprobar el conteo a 0 después de 10 minutos
-	echo "Definir test"
+	numero_backups_previos=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
+	cantidad_caidas=5
+	for (( i = 0; i < $cantidad_caidas; i++ )); do
+		killall -9 asterisk
+		sleep 15
+		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
+		assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
+		
+		adelantarSegundos 30
+	done
+	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
+	numero_esperado=$(($numero_backups_previos+$cantidad_caidas))
+	assertEquals "Cantida de backups no consistente " $numero_esperado $numero_backups_actuales	
+
+	adelantarSegundos 630
+
+	numero_backups_previos=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
+	cantidad_caidas=5
+	for (( i = 0; i < $cantidad_caidas; i++ )); do
+		killall -9 asterisk
+		sleep 15
+		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
+		assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
+		
+		adelantarSegundos 30
+	done
+	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
+	numero_esperado=$(($numero_backups_previos+$cantidad_caidas))
+	assertEquals "Cantida de backups no consistente " $numero_esperado $numero_backups_actuales	
 }
-test_When_SafeCentrexNoEstaCorriendoYUserNoAutorizadoTrataDeInicializarlo_Then_SafeCentrexNoInicia(){
-	echo "Definir test"
+
+test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo(){
+	kiloBytes_disponibles=$(df / --output=avail | tail -n 1 | awk '{$2="K";print $1 $2}')
+	fallocate -l $kiloBytes_disponibles	archivo_grande
+	df -h
+	killall -9 asterisk
+	sleep 15
+	asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
+	assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 0 $asterisk_listening
+
+	rm archivo_grande
+	pidof_asterisk=$(pidof asterisk)
+	## Tuve que hacer esta negrada porque el bash el envía una cadena vacía y shubit interpreta como que faltan argumentos
+	if [ -z "$pidof_asterisk" ]
+	then
+		resultado_pidof="Inexistente"
+	else
+		resultado_pidof="Existe 1"
+	fi
+	##assertTrue "Hay un proceso asterisk corriendo cuando no debería" [ -z "$pidof_asterisk" ] 
+	assertEquals "No debería haber algùn proceso Asterisk corriendo" "Inexistente" $resultado_pidof 
+}
+
+test_DefinirTestParaVerificarPermisos(){
+	echo "TODO = Definir Test"
+}
+
+suite(){
+	##En esta función se agregan los test que se van a correr
+	## Sin esta funciòn, se corren todas las funciones que comienzan con la palabra test
+	suite_addTest test_When_AsteriskCae5VecesSeguidas_Then_AsteriskSigueEstandoLevantando
+	suite_addTest test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo
+	suite_addTest test_WhenAsteriskCae5VecesSeguidasLuego8VecesSeguidas_Then_AsteriskSigueEstandoLevantando
+	suite_addTest test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo
 }
 . /home/voipgroup/shunit2-2.1.7/shunit2
