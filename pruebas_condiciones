@@ -1,9 +1,0 @@
-#!/bin/bash
-
-
-cantidad_ast_en_5060=$(netstat -putan | grep 'udp' | grep 'asterisk' | awk '{print $4}' | awk -F ":" '{print $2}' | grep '5060' | wc -l)
-	if [[ cantidad_ast_en_5060 ]]; then
-		echo 1
-	else
-		echo 0	
-	fi	
