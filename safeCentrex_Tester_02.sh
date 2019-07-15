@@ -20,6 +20,8 @@ oneTimeSetUp(){
 		exit 1
 	fi
 	segundos_adelantados=0
+
+	tiempo_espera=10
 }
 
 oneTimeTearDown(){
@@ -38,7 +40,7 @@ setUp(){
 	sudo killall asterisk
 	sudo safe_centrex
 	
-	sleep 10
+	sleep $tiempo_espera
 	
 	cantidad_safecentrex_corriendo=$(ps -aux | grep safe_centrex | grep "/bin/sh" | wc -l)
 	## TODO =  ver qué hacer si la inicialización de la prueba falló
@@ -46,25 +48,22 @@ setUp(){
 
 	asterisk_status=$(check_AsteriskUp)
 	safeCentrex_status=$(check_SafeCentrexUp)
-	##echo "Estado del Asterisk		=" $asterisk_status
-	##echo "Estado del Safe Centrex	=" $safeCentrex_status
 	initial_conditions=$(($asterisk_status&&$safeCentrex_status))
 	assertEquals "Asterisk o Safe Centrex no se encuentran corriendo" 1 $initial_conditions
+	echo "-------------------------		INICIO DE PRUEBA	--------------------"
 }
 
 tearDown(){
-	echo "Se adelantaron " $segundos_adelantados "segundos"
 	sudo date -s "$segundos_adelantados seconds ago">>/dev/null
 	segundos_adelantados=0
-	echo "--------------------------------------------------------------------------------------------------------------------------"
+	echo "-------------------------		FIN DE PRUEBA	--------------------"
 }
 test_When_AsteriskCae5VecesSeguidas_Then_AsteriskSigueEstandoLevantando(){	
 	numero_backups_previos=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
-	
 	cantidad_caidas=5
 	for (( i = 0; i < $cantidad_caidas; i++ )); do
 		killall -9 asterisk
-		sleep 15
+		sleep $tiempo_espera
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 		assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
 		
@@ -83,7 +82,7 @@ test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo(){
 		actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
 		echo "Numero back ups actuales antes de la caida" $actuales
 		killall -9 asterisk>>/dev/null
-		sleep 5
+		sleep $tiempo_espera
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 		echo "Estado del asterisk antes de la caida = "  $asterisk_listening
 		if [[ $i -lt 10 ]]; then
@@ -100,7 +99,7 @@ test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo(){
 		echo "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 	done
 	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
-	sleep 5
+	sleep $tiempo_espera
 	##	Número de backupps cuando el número de caídas es mayor a 10 siempre es 10 más del previo 
 	numero_esperado=$(($numero_backups_previos+10))
 	echo "num esperado" $numero_esperado
@@ -114,7 +113,7 @@ test_WhenAsteriskCae5VecesSeguidasLuego8VecesSeguidas_Then_AsteriskSigueEstandoL
 	cantidad_caidas=5
 	for (( i = 0; i < $cantidad_caidas; i++ )); do
 		killall -9 asterisk
-		sleep 15
+		sleep $tiempo_espera
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 		assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
 		
@@ -130,10 +129,9 @@ test_WhenAsteriskCae5VecesSeguidasLuego8VecesSeguidas_Then_AsteriskSigueEstandoL
 	cantidad_caidas=5
 	for (( i = 0; i < $cantidad_caidas; i++ )); do
 		killall -9 asterisk
-		sleep 15
+		sleep $tiempo_espera
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 		assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
-		
 		adelantarSegundos 30
 	done
 	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
@@ -146,7 +144,7 @@ test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo(){
 	fallocate -l $kiloBytes_disponibles	archivo_grande
 	df -h
 	killall -9 asterisk
-	sleep 15
+	sleep $tiempo_espera
 	asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 	assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 0 $asterisk_listening
 
