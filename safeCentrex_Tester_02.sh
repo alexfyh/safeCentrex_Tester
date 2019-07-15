@@ -163,16 +163,45 @@ test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo(){
 	assertEquals "No debería haber algùn proceso Asterisk corriendo" "Inexistente" $resultado_pidof 
 }
 
-test_DefinirTestParaVerificarPermisos(){
+test_When_SafeCentrexEsIniciadoComoUsuarioNoRoot_Then_SafeCentrexNoSeEncuentraCorriendo(){
+	## Test válido para confirmar que sólo el user Root (user id = 0) puede iniciar el safe_centrex
+	
+	## Mato todo los proceos safe_centrex y asterisk activos
+	## Supuse que había un sólo proceos safe_centrex corriendo (Verificar en otro test)
+	safeCentrex_PID=$(ps -aux | grep "safe_centrex" | grep "/bin/sh" | awk '{print $2}')
+	kill $safeCentrex_PID
+	killall asterisk
+	## Puedo suponer que hay un usuario voipgroup en la mv que no tiene permisos de root ?
+	## Ésta fue la única suposición que pude tomar para usar un user diferente al root
+	usuarioNoRoot=$( cat /etc/passwd | grep "/bin/bash" | grep -v "root" | awk -F ':' '{print $1}')
+	sudo -u $usuarioNoRoot safe_centrex
+	safeCentrex_status=$(check_SafeCentrexUp)
+	assertEquals "Safe Centrex fue iniciado sin permisos de root" 0 $safeCentrex_status 
+}
+
+test_When_SafeCentrexEsIniciadoComoRoot_Then_SafeCentrexSeEncuentraCorriendo(){
+	safeCentrex_PID=$(ps -aux | grep "safe_centrex" | grep "/bin/sh" | awk '{print $2}')
+	kill $safeCentrex_PID
+	killall asterisk
+	sudo -u root safe_centrex
+	safeCentrex_status=$(check_SafeCentrexUp)
+	assertEquals "Safe Centrex no pudo iniciarse siendo ejecutado como root" 1 $safeCentrex_status 
+}
+
+
+test_DefinirTestParaQueNoComienceOtroProceso(){
 	echo "TODO = Definir Test"
+	##Analizar por PÎD
 }
 
 suite(){
 	##En esta función se agregan los test que se van a correr
 	## Sin esta funciòn, se corren todas las funciones que comienzan con la palabra test
-	suite_addTest test_When_AsteriskCae5VecesSeguidas_Then_AsteriskSigueEstandoLevantando
-	suite_addTest test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo
-	suite_addTest test_WhenAsteriskCae5VecesSeguidasLuego8VecesSeguidas_Then_AsteriskSigueEstandoLevantando
-	suite_addTest test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo
+	#suite_addTest test_When_AsteriskCae5VecesSeguidas_Then_AsteriskSigueEstandoLevantando
+	#suite_addTest test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo
+	#suite_addTest test_WhenAsteriskCae5VecesSeguidasLuego8VecesSeguidas_Then_AsteriskSigueEstandoLevantando
+	#suite_addTest test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo
+	suite_addTest test_When_SafeCentrexEsIniciadoComoUsuarioNoRoot_Then_SafeCentrexNoSeEncuentraCorriendo
+	suite_addTest test_When_SafeCentrexEsIniciadoComoRoot_Then_SafeCentrexSeEncuentraCorriendo
 }
 . /home/voipgroup/shunit2-2.1.7/shunit2

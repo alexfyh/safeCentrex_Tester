@@ -19,8 +19,9 @@ check_SafeCentrexUp(){
 	if [[ $wc_ps_aux -ne 2 ]]; then
 		##echo "ERROR = Safe centrex no se encuentra corriendo"
 		echo 0
+	else
+		echo 1
 	fi
-	echo 1
 }
 
 check_AsteriskAndSafeCentrexUp(){
