@@ -1,5 +1,9 @@
 #!/bin/bash
 
+##	TODO = Refactorizar para que sea ejecutado de forma remota,así SUT no necesita agregar nada como shUnit
+
+##	TODO = Definir si está bien que se banque 12 caídas en vez de 10 y descomentar el test que falla
+
 ##	IMPORTANTE	CORRERLO COMO SUDO, SINO NO CORRE LOS KILLALL Y PS -PUTAN
 ##	HACER UNA GUÍA DE LOS PARÁMETROS RECIBIDOS?????
 
