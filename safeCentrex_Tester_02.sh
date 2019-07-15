@@ -39,9 +39,7 @@ setUp(){
 	sudo killall safe_centrex
 	sudo killall asterisk
 	sudo safe_centrex
-	
 	sleep $tiempo_espera
-	
 	cantidad_safecentrex_corriendo=$(ps -aux | grep safe_centrex | grep "/bin/sh" | wc -l)
 	## TODO =  ver qué hacer si la inicialización de la prueba falló
 	assertEquals "Inicializacion falló" 1 $cantidad_safecentrex_corriendo 
@@ -66,7 +64,6 @@ test_When_AsteriskCae5VecesSeguidas_Then_AsteriskSigueEstandoLevantando(){
 		sleep $tiempo_espera
 		asterisk_listening=$(check_AsteriskListeningOnPort5060Udp)
 		assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
-		
 		adelantarSegundos 30
 	done
 	numero_backups_actuales=$(ls -l /var/www/backups |  grep safe_centrex | wc -l)
@@ -87,7 +84,6 @@ test_When_AsteriskCae14VecesSeguidas_Then_AsteriskNoSeEncuentraCorriendo(){
 		echo "Estado del asterisk antes de la caida = "  $asterisk_listening
 		if [[ $i -lt 10 ]]; then
 			echo "Iteracion = " $i 
-			
 			#assertEquals "Asterisk no se encuentra escuchando en el puerto 5060 " 1 $asterisk_listening
 		else
 			echo "Iteracion = " $i
@@ -162,8 +158,7 @@ test_When_elDiscoEstaLleno_SiAsteriskCae_Then_NohayProcesoAsteriskCorriendo(){
 }
 
 test_When_SafeCentrexEsIniciadoComoUsuarioNoRoot_Then_SafeCentrexNoSeEncuentraCorriendo(){
-	## Test válido para confirmar que sólo el user Root (user id = 0) puede iniciar el safe_centrex
-	
+	## Test válido para confirmar que sólo el user Root (user id = 0) puede iniciar el safe_centrex	
 	## Mato todo los proceos safe_centrex y asterisk activos
 	## Supuse que había un sólo proceos safe_centrex corriendo (Verificar en otro test)
 	safeCentrex_PID=$(ps -aux | grep "safe_centrex" | grep "/bin/sh" | awk '{print $2}')
@@ -185,7 +180,6 @@ test_When_SafeCentrexEsIniciadoComoRoot_Then_SafeCentrexSeEncuentraCorriendo(){
 	safeCentrex_status=$(check_SafeCentrexUp)
 	assertEquals "Safe Centrex no pudo iniciarse siendo ejecutado como root" 1 $safeCentrex_status 
 }
-
 
 test_DefinirTestParaQueNoComienceOtroProceso(){
 	echo "TODO = Definir Test"
